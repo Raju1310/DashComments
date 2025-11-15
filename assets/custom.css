@@ -1,0 +1,159 @@
+/* General Body Styles */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f2f5;
+    overflow: hidden; /* Prevent scrolling of the entire page */
+}
+
+/* App container */
+#react-entry-point > div {
+    height: 100vh;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    background-color: #f8f9fa; /* Lighter grey for the sidebar */
+    padding: 2rem;
+    height: 100vh;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+    border-right: 1px solid #dee2e6;
+}
+
+.sidebar h5 {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+/* Layout Selector Styles */
+.layout-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+}
+
+.layout-selector .btn {
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    color: #495057;
+    padding: 0.5rem;
+    height: 50px; /* Fixed height for layout buttons */
+}
+
+.layout-selector .btn:hover {
+    background-color: #e9ecef;
+}
+
+/* Visuals Selector (Accordion) Styles */
+.accordion-item {
+    border: 1px solid #dee2e6 !important;
+    border-radius: 0.25rem;
+    margin-bottom: 1rem;
+    background-color: #fff;
+}
+
+.accordion-button {
+    color: #343a40;
+    background-color: #fff;
+    font-weight: 500;
+}
+
+.accordion-button:not(.collapsed) {
+    color: #343a40;
+    background-color: #fff;
+    box-shadow: none;
+}
+
+.accordion-body {
+    padding: 1rem;
+}
+
+.draggable-chart {
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    cursor: grab;
+    background-color: #f8f9fa;
+}
+
+.draggable-chart:active {
+    cursor: grabbing;
+}
+
+.chart-preview-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+
+/* Canvas Area Styles */
+.canvas-container {
+    padding: 1rem 2rem;
+    background-color: #fff;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.canvas-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+}
+
+.canvas-header h4 {
+    color: #495057;
+    margin: 0;
+}
+
+.canvas-header .btn-secondary {
+    background-color: #E6E6FA; /* Light purple for Reset button */
+    border-color: #E6E6FA;
+    color: #8A2BE2;
+}
+
+.canvas-header .btn-primary {
+    background-color: #8A2BE2; /* A purple shade to match the image */
+    border-color: #8A2BE2;
+}
+
+.canvas-grid {
+    flex-grow: 1;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background: linear-gradient(to bottom right, #fdfbff, #e6e9f0); /* Subtle gradient */
+    display: grid;
+    gap: 1rem;
+}
+
+.drop-cell {
+    background-color: rgba(255, 255, 255, 0.6);
+    border: 2px dashed #d1d8e0;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.drop-cell.drag-over {
+    background-color: rgba(230, 240, 255, 0.8);
+    border-color: #8A2BE2;
+}
+
+.placeholder-text,
+.drop-target-text {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.chart-container {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
