@@ -13,20 +13,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateProgressUI() {
-        const total = window.curriculum.length;
+        // Calculate total days
+        let totalDays = 0;
+        window.curriculum.forEach(week => {
+            totalDays += week.days.length;
+        });
+
         const count = completedDays.length;
-        const percentage = (count / total) * 100;
+        const percentage = (count / totalDays) * 100;
 
         progressBar.style.width = `${percentage}%`;
         completedCountEl.textContent = count;
 
         // Update checkmarks
-        document.querySelectorAll('.day-card').forEach(card => {
-            const dayId = parseInt(card.dataset.day);
+        document.querySelectorAll('.day-status-check').forEach(check => {
+            const dayId = parseInt(check.dataset.day);
             if (completedDays.includes(dayId)) {
-                card.classList.add('completed');
+                check.classList.add('completed');
+                check.closest('.day-card').classList.add('completed-card');
             } else {
-                card.classList.remove('completed');
+                check.classList.remove('completed');
+                check.closest('.day-card').classList.remove('completed-card');
             }
         });
     }
@@ -34,107 +41,163 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderCurriculum() {
         app.innerHTML = '';
 
-        window.curriculum.forEach(day => {
-            const card = document.createElement('div');
-            card.className = 'day-card';
-            card.dataset.day = day.day;
+        window.curriculum.forEach((week, weekIndex) => {
+            // Week Container
+            const weekContainer = document.createElement('div');
+            weekContainer.className = 'week-container';
 
-            // Header
-            const header = document.createElement('div');
-            header.className = 'day-header';
-            header.innerHTML = `
-                <div>
-                    <span class="day-meta">Day ${day.day}</span>
-                    <span class="day-title">${day.title}</span>
-                </div>
-                <div class="status-check" title="Mark as Complete"></div>
+            // Week Header
+            const weekHeader = document.createElement('div');
+            weekHeader.className = 'week-header';
+            weekHeader.innerHTML = `
+                <h2>Week ${week.week}: ${week.title}</h2>
+                <p>${week.description}</p>
             `;
-
-            // Toggle Content
-            header.addEventListener('click', (e) => {
-                // If clicking the checkmark, toggle completion
-                if (e.target.classList.contains('status-check')) {
-                    toggleCompletion(day.day);
-                    return;
-                }
-                // Otherwise toggle accordion
-                const wasOpen = card.classList.contains('open');
-                // Close all others (optional, maybe keep them open)
-                // document.querySelectorAll('.day-card').forEach(c => c.classList.remove('open'));
-                if (!wasOpen) {
-                    card.classList.add('open');
-                } else {
-                    card.classList.remove('open');
-                }
+            weekHeader.addEventListener('click', () => {
+                weekContainer.classList.toggle('open');
             });
 
-            // Content
-            const content = document.createElement('div');
-            content.className = 'day-content';
-            content.innerHTML = `<p class="day-desc">${day.description}</p>`;
+            weekContainer.appendChild(weekHeader);
 
-            // Subtopics
-            day.subtopics.forEach((topic, index) => {
-                const topicDiv = document.createElement('div');
-                topicDiv.className = 'subtopic';
+            // Days Container
+            const daysContainer = document.createElement('div');
+            daysContainer.className = 'week-days';
 
-                // Tabs Logic
-                const uniqueId = `d${day.day}-t${index}`;
+            week.days.forEach(day => {
+                const dayCard = document.createElement('div');
+                dayCard.className = 'day-card';
+                dayCard.dataset.day = day.day;
 
-                let tabsHtml = '<div class="tabs">';
-                let contentHtml = '';
+                // Day Header
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'day-header';
+                dayHeader.innerHTML = `
+                    <div class="day-header-info">
+                        <span class="day-meta">Day ${day.day}</span>
+                        <span class="day-title">${day.title}</span>
+                    </div>
+                    <div class="day-status-check" data-day="${day.day}" title="Mark Day as Complete"></div>
+                `;
 
-                topic.resources.forEach((res, rIndex) => {
-                    const activeClass = rIndex === 0 ? 'active' : '';
-                    const typeLabel = res.type.charAt(0).toUpperCase() + res.type.slice(1);
-                    tabsHtml += `<button class="tab-btn ${activeClass}" data-target="${uniqueId}-r${rIndex}">${typeLabel}</button>`;
+                // Toggle Day Content
+                dayHeader.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('day-status-check')) {
+                        toggleCompletion(day.day);
+                        return;
+                    }
+                    dayCard.classList.toggle('open');
+                });
 
-                    let innerContent = '';
-                    if (res.type === 'video' && res.url.includes('youtube')) {
-                         innerContent = `<div class="video-wrapper"><iframe src="${res.url}" allowfullscreen></iframe></div>`;
-                    } else {
-                         innerContent = `<a href="${res.url}" target="_blank" class="resource-link">Open ${res.title} ↗</a>`;
-                         if (res.type === 'read') {
-                             innerContent += `<p style="font-size:0.9rem; margin-top:0.5rem; color:#666;">Read this article to understand the concept.</p>`;
-                         }
+                // Day Content
+                const dayContent = document.createElement('div');
+                dayContent.className = 'day-content';
+                dayContent.innerHTML = `<p class="day-desc">${day.description}</p>`;
+
+                // Subtopics
+                day.subtopics.forEach((topic, tIndex) => {
+                    const topicDiv = document.createElement('div');
+                    topicDiv.className = 'subtopic';
+
+                    // Unique ID for tabs
+                    const uniqueId = `w${week.week}-d${day.day}-t${tIndex}`;
+
+                    // Build Tabs
+                    let tabsHtml = '<div class="tabs">';
+                    let contentHtml = '<div class="tab-contents">';
+
+                    // Add "Explanation" as the first default tab
+                    tabsHtml += `<button class="tab-btn active" data-target="${uniqueId}-exp">Concept</button>`;
+                    contentHtml += `<div id="${uniqueId}-exp" class="tab-content active"><div class="explanation-text">${markedParse(topic.explanation)}</div></div>`;
+
+                    // Add other resources
+                    topic.resources.forEach((res, rIndex) => {
+                        const resId = `${uniqueId}-r${rIndex}`;
+                        let label = res.type.charAt(0).toUpperCase() + res.type.slice(1);
+                        if(res.type === 'video') label = 'Video';
+                        if(res.type === 'read') label = 'Deep Dive';
+
+                        tabsHtml += `<button class="tab-btn" data-target="${resId}">${label}</button>`;
+
+                        let innerContent = '';
+                        if (res.type === 'video' && res.url.includes('youtube')) {
+                             innerContent = `<div class="video-wrapper"><iframe src="${res.url}" allowfullscreen></iframe></div>`;
+                        } else if (res.type === 'read' && res.content) {
+                             // Internal content
+                             innerContent = `<div class="internal-read">${markedParse(res.content)}</div>`;
+                        } else {
+                             // External link
+                             innerContent = `<div class="external-link-box">
+                                <a href="${res.url}" target="_blank" class="resource-link">Open ${res.title} ↗</a>
+                                <p>External Resource</p>
+                             </div>`;
+                        }
+
+                        contentHtml += `<div id="${resId}" class="tab-content">${innerContent}</div>`;
+                    });
+
+                    // Add Task Tab
+                    if (topic.task) {
+                        const taskId = `${uniqueId}-task`;
+                        tabsHtml += `<button class="tab-btn" data-target="${taskId}">Task</button>`;
+                        contentHtml += `<div id="${taskId}" class="tab-content">
+                            <div class="task-box">
+                                <span class="task-title">Practical Task:</span>
+                                <p>${topic.task}</p>
+                            </div>
+                        </div>`;
                     }
 
-                    contentHtml += `<div id="${uniqueId}-r${rIndex}" class="tab-content ${activeClass}">${innerContent}</div>`;
-                });
-                tabsHtml += '</div>';
+                    tabsHtml += '</div>'; // close tabs
+                    contentHtml += '</div>'; // close tab-contents
 
-                topicDiv.innerHTML = `
-                    <h3>${topic.title}</h3>
-                    <p class="explanation">${topic.explanation}</p>
-                    ${topic.resources.length > 0 ? tabsHtml + contentHtml : ''}
-                    <div class="task-box">
-                        <span class="task-title">Task:</span> ${topic.task}
-                    </div>
-                `;
-                content.appendChild(topicDiv);
+                    topicDiv.innerHTML = `
+                        <h3>${topic.title}</h3>
+                        ${tabsHtml}
+                        ${contentHtml}
+                    `;
+                    dayContent.appendChild(topicDiv);
+                });
+
+                dayCard.appendChild(dayHeader);
+                dayCard.appendChild(dayContent);
+                daysContainer.appendChild(dayCard);
             });
 
-            card.appendChild(header);
-            card.appendChild(content);
-            app.appendChild(card);
+            weekContainer.appendChild(daysContainer);
+            app.appendChild(weekContainer);
         });
 
-        // Initialize Tab Event Listeners
+        // Initialize Tab Listeners (Delegation)
         app.addEventListener('click', (e) => {
             if (e.target.classList.contains('tab-btn')) {
                 const btn = e.target;
                 const targetId = btn.dataset.target;
-                const parentSubtopic = btn.closest('.subtopic');
+                const parentContext = btn.closest('.subtopic');
 
-                // Remove active from siblings
-                parentSubtopic.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                parentSubtopic.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                // Deactivate all in this subtopic
+                parentContext.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                parentContext.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
                 // Activate clicked
                 btn.classList.add('active');
                 document.getElementById(targetId).classList.add('active');
             }
         });
+    }
+
+    // Simple Markdown Parser for explanations
+    function markedParse(text) {
+        if (!text) return '';
+        let html = text
+            // Bold
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            // Code block
+            .replace(/```python([\s\S]*?)```/g, '<pre><code class="language-python">$1</code></pre>')
+            // Inline code
+            .replace(/`([^`]+)`/g, '<code>$1</code>')
+            // Newlines to br
+            .replace(/\n/g, '<br>');
+        return html;
     }
 
     function toggleCompletion(dayId) {

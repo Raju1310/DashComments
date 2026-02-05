@@ -1,13 +1,25 @@
-# 28 Days of Data Science
+# 90 Days of Data Science Mastery
 
-A practical, mobile-friendly path to learning Data Science in 4 weeks.
+A practical, mobile-friendly path to learning Data Science in 12 weeks.
 
 ## Features
-- **Strict 28-Day Timeline**: From Python basics to a Machine Learning Capstone.
-- **Practical Focus**: "Learn by doing" with daily tasks.
-- **Feynman Technique**: Concepts explained simply.
-- **Embedded Resources**: Watch tutorials directly in the app.
-- **Progress Tracking**: Your progress is saved automatically.
+- **Strict 90-Day Timeline**: From Python basics to Deep Learning & Deployment.
+- **Granular Content**: Read "mini-articles" for every subtopic directly in the app.
+- **Diverse Resources**: Tabs for Concepts, Videos, Deep Dives, and Tasks.
+- **Mobile-First Design**: Optimized for learning on the go.
+- **Progress Tracking**: Your progress is saved automatically via LocalStorage.
+
+## Curriculum Overview
+- **Weeks 1-2**: Python Foundations & Advanced Concepts
+- **Weeks 3**: NumPy & Pandas
+- **Week 4**: Visualization (Matplotlib, Seaborn, Plotly)
+- **Week 5**: Statistics & Probability
+- **Week 6**: SQL & Databases
+- **Weeks 7-8**: Machine Learning (Supervised & Evaluation)
+- **Week 9**: Unsupervised Learning
+- **Week 10**: Deep Learning Intro
+- **Week 11**: Time Series & NLP
+- **Week 12**: Deployment & Capstone Project
 
 ## How to Use
 
