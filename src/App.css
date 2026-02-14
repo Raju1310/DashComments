@@ -1,0 +1,132 @@
+:root {
+  --color-sidebar: #002b36; /* Navy/Dark Blue */
+  --color-sidebar-text: #ffffff;
+  --color-content: #f0f0f0; /* Light Grey */
+  --color-text: #000000;
+  --color-input-active: #FFFACD; /* Yellow */
+  --color-focus-bg: #000080; /* Navy Blue for focus */
+  --color-focus-text: #ffffff; /* White text for focus */
+  --font-family: 'Courier New', Courier, monospace; /* Monospace-feel */
+  --spacing-unit: 4px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family);
+  background-color: var(--color-content);
+  color: var(--color-text);
+  overflow: hidden; /* Prevent scrolling if everything fits */
+  height: 100vh;
+  width: 100vw;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* High density utility classes */
+.flex { display: flex; }
+.flex-col { display: flex-direction: column; }
+.flex-1 { flex: 1; }
+.h-full { height: 100%; }
+.w-full { width: 100%; }
+
+/* Shell Layout */
+.shell-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-content);
+  margin-right: 200px; /* Space for fixed sidebar */
+}
+
+.sidebar {
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 200px;
+  background-color: var(--color-sidebar);
+  color: var(--color-sidebar-text);
+  padding: var(--spacing-unit);
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid #ccc;
+  z-index: 100;
+}
+
+.top-bar {
+  background-color: #ddd;
+  padding: var(--spacing-unit);
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #999;
+  font-weight: bold;
+}
+
+/* Typography & Density */
+h1, h2, h3, h4, h5, h6, p {
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  padding: 2px 0; /* Tight spacing */
+}
+
+/* Input Styles */
+input, select, .tally-input {
+  border: 1px solid #ccc;
+  padding: 2px 4px;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  background-color: white;
+  width: 100%;
+}
+
+/* Focus State: Dramatically highlighted via inverted colors */
+input:focus, select:focus, .tally-input:focus, .focused {
+  background-color: var(--color-input-active) !important; /* Yellow highlight */
+  color: black;
+  outline: 2px solid var(--color-focus-bg);
+}
+
+/* Navigation Focus (Inverted) - used for menu items */
+.nav-item.active {
+  background-color: var(--color-focus-bg);
+  color: var(--color-focus-text);
+}
+
+/* Sidebar Buttons */
+.sidebar-btn {
+  background: transparent;
+  border: none;
+  color: inherit;
+  text-align: left;
+  padding: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.sidebar-btn:hover {
+  background-color: rgba(255,255,255,0.1);
+}
