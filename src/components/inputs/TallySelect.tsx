@@ -1,5 +1,6 @@
 import React, { useState, useEffect, forwardRef } from 'react';
 import { TallyInput } from './TallyInput';
+import { CreateLedgerModal } from '../masters/CreateLedgerModal';
 
 interface Option {
   label: string;
@@ -10,26 +11,47 @@ interface TallySelectProps extends Omit<React.InputHTMLAttributes<HTMLInputEleme
   options: Option[];
   value?: string;
   onChange?: (value: string) => void;
+  allowCreate?: boolean;
+  onCreateSuccess?: (newId: string) => void;
 }
 
 export const TallySelect = forwardRef<HTMLInputElement, TallySelectProps>(
-  ({ options, value, onChange, onBlur, onKeyDown, ...props }, ref) => {
+  ({ options, value, onChange, onBlur, onKeyDown, allowCreate = false, onCreateSuccess, ...props }, ref) => {
     const [isOpen, setIsOpen] = useState(false);
     const [highlightedIndex, setHighlightedIndex] = useState(0);
     const [filter, setFilter] = useState('');
+    const [showCreateModal, setShowCreateModal] = useState(false);
 
-    const selectedLabel = options.find(o => o.value === value)?.label || '';
+    // Derived state for display
+    const selectedOption = options.find(o => o.value === value);
+    const selectedLabel = selectedOption ? selectedOption.label : '';
     const [inputValue, setInputValue] = useState(selectedLabel);
 
+    // Update input value when prop value changes
     useEffect(() => {
-        setInputValue(selectedLabel);
-    }, [selectedLabel]);
+        const opt = options.find(o => o.value === value);
+        if (opt) setInputValue(opt.label);
+    }, [value, options]);
 
     const filteredOptions = options.filter(o =>
       o.label.toLowerCase().includes(filter.toLowerCase())
     );
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (showCreateModal) return; // Let modal handle its own keys
+
+        // Alt+C handler
+        if (allowCreate && e.altKey && e.key.toLowerCase() === 'c') {
+            console.log("Alt+C detected in TallySelect");
+            e.preventDefault();
+            e.stopPropagation();
+            e.nativeEvent.stopImmediatePropagation();
+
+            setShowCreateModal(true);
+            setIsOpen(false);
+            return;
+        }
+
         if (!isOpen) {
             if (e.key === 'ArrowDown' || e.key === 'Enter') {
                 e.preventDefault();
@@ -69,28 +91,39 @@ export const TallySelect = forwardRef<HTMLInputElement, TallySelectProps>(
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setInputValue(e.target.value);
         setFilter(e.target.value);
-        setIsOpen(true);
+        if (!isOpen) setIsOpen(true);
         setHighlightedIndex(0);
     };
 
     const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-        setTimeout(() => {
-            setIsOpen(false);
-            if (!options.find(o => o.label === inputValue) && inputValue !== '') {
-                 // Check if input matches any option
-                 const match = options.find(o => o.label.toLowerCase() === inputValue.toLowerCase());
-                 if (match) {
-                     handleSelect(match);
-                 } else {
-                     setInputValue(selectedLabel);
-                 }
-            }
-        }, 200);
+        if (!showCreateModal) {
+            setTimeout(() => {
+                setIsOpen(false);
+                // If not matched, revert
+                if (!options.find(o => o.label === inputValue) && inputValue !== '') {
+                     const match = options.find(o => o.label.toLowerCase() === inputValue.toLowerCase());
+                     if (match) {
+                         handleSelect(match);
+                     } else {
+                         setInputValue(selectedLabel);
+                     }
+                }
+            }, 200);
+        }
         onBlur?.(e);
     };
 
+    const handleCreateSave = (newId: string) => {
+        setShowCreateModal(false);
+        if (onCreateSuccess) {
+            onCreateSuccess(newId);
+        } else {
+            onChange?.(newId);
+        }
+    };
+
     return (
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative', width: '100%' }}>
             <TallyInput
                 ref={ref}
                 value={inputValue}
@@ -130,6 +163,13 @@ export const TallySelect = forwardRef<HTMLInputElement, TallySelectProps>(
                         </li>
                     ))}
                 </ul>
+            )}
+
+            {showCreateModal && (
+                <CreateLedgerModal
+                    onSave={handleCreateSave}
+                    onCancel={() => setShowCreateModal(false)}
+                />
             )}
         </div>
     );

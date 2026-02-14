@@ -1,11 +1,5 @@
 import { useState, useCallback } from 'react';
-
-export type ScreenName = 'GATEWAY' | 'VOUCHER_ENTRY';
-
-export interface ScreenState {
-  name: ScreenName;
-  props?: Record<string, any>;
-}
+import type { ScreenName, ScreenState } from '../types';
 
 export const useNavigationStack = (initialScreen: ScreenName = 'GATEWAY') => {
   const [stack, setStack] = useState<ScreenState[]>([{ name: initialScreen }]);

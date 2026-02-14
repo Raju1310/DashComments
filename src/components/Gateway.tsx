@@ -1,20 +1,23 @@
 import React, { useState } from 'react';
 import { useKeyHandler } from '../hooks/useKeyHandler';
+import type { ScreenName } from '../types';
 
 interface GatewayProps {
-  onNavigate: (screen: any, props?: any) => void;
+  onNavigate: (screen: ScreenName, props?: any) => void;
 }
 
-const MENU_ITEMS = [
-  { label: 'Masters', action: 'MASTERS', disabled: true },
-  { label: 'Transactions', action: 'TRANSACTIONS', shortcut: 't' }, // Maps to Voucher Entry for now
-  { label: 'Utilities', action: 'UTILITIES', disabled: true },
-  { label: 'Reports', action: 'REPORTS', disabled: true },
-  { label: 'Quit', action: 'QUIT', shortcut: 'q', disabled: true },
+const MENU_ITEMS: { label: string; action: ScreenName; disabled?: boolean; shortcut?: string }[] = [
+  { label: 'Masters > Accounts Info', action: 'GROUP_LIST' },
+  { label: 'Transactions > Vouchers', action: 'VOUCHER_ENTRY', shortcut: 'v' },
+  { label: 'Reports > Balance Sheet', action: 'BALANCE_SHEET', disabled: true },
+  { label: 'Reports > Profit & Loss', action: 'PROFIT_LOSS', disabled: true },
+  { label: 'Reports > Trial Balance', action: 'TRIAL_BALANCE' },
+  { label: 'Reports > Day Book', action: 'DAY_BOOK' },
+  { label: 'Quit', action: 'GATEWAY', shortcut: 'q', disabled: true },
 ];
 
 export const Gateway: React.FC<GatewayProps> = ({ onNavigate }) => {
-  const [selectedIndex, setSelectedIndex] = useState(1); // Default to Transactions
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   useKeyHandler((e) => {
     if (e.key === 'ArrowDown') {
@@ -29,9 +32,8 @@ export const Gateway: React.FC<GatewayProps> = ({ onNavigate }) => {
   });
 
   const handleSelect = (item: typeof MENU_ITEMS[0]) => {
-      if (item.label === 'Transactions') {
-          onNavigate('VOUCHER_ENTRY', { type: 'Payment' });
-      }
+      if (item.disabled) return;
+      onNavigate(item.action, item.action === 'VOUCHER_ENTRY' ? { type: 'Payment' } : undefined);
   };
 
   return (
@@ -53,7 +55,13 @@ export const Gateway: React.FC<GatewayProps> = ({ onNavigate }) => {
                 <li
                 key={item.label}
                 className={`nav-item ${index === selectedIndex ? 'active' : ''}`}
-                style={{ padding: '4px 8px', cursor: 'pointer', textAlign: 'center' }}
+                style={{
+                    padding: '4px 8px',
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    backgroundColor: index === selectedIndex ? '#000080' : 'transparent',
+                    color: index === selectedIndex ? 'white' : (item.disabled ? 'gray' : 'black')
+                }}
                 onClick={() => handleSelect(item)}
                 >
                 {item.label}
