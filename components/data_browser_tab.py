@@ -305,8 +305,8 @@ def render_data_browser_tab(subject_ids=None):
 
             # ── Stores ───────────────────────────────────────────────────────
             dcc.Store(id="browser-subject-ids", data=subject_ids_json),
-            # data=[] clears stale session selection on every fresh tab render
-            dcc.Store(id="browser-selected-tables", storage_type="session", data=[]),
+            # REMOVED data=[] to allow persistence from session
+            dcc.Store(id="browser-selected-tables", storage_type="session"),
             dcc.Store(id="browser-table-metadata", storage_type="memory"),
             dcc.Store(id="browser-load-trigger", storage_type="memory"),
 
@@ -566,13 +566,6 @@ def update_sidebar_buttons(search_term, selected_tables, study_number):
     )
 
 
-@callback(
-    Output("browser-selected-tables", "data", allow_duplicate=True),
-    Input("selected-study-number-to-access-across-app", "data"),
-    prevent_initial_call=True,
-)
-def clear_selection_on_study_change(_):
-    return []
 
 
 @callback(
@@ -591,15 +584,11 @@ def manage_table_selection(btn_clicks, close_clicks, current_selection):
     trigger_type      = trigger.get("type")
     trigger_table     = str(trigger["table"])
 
-    print(f"[manage_table_selection] trigger={trigger_type}:{trigger_table} | before={current_selection}")
-
     if trigger_type == "browser-table-btn":
         if not btn_clicks or not any(c > 0 for c in btn_clicks):
-            print(f"[manage_table_selection] BLOCKED — zero clicks")
             return no_update
     elif trigger_type == "browser-table-close":
         if not close_clicks or not any(c > 0 for c in close_clicks):
-            print(f"[manage_table_selection] BLOCKED — zero clicks")
             return no_update
 
     new_selection = current_selection.copy()
@@ -612,7 +601,6 @@ def manage_table_selection(btn_clicks, close_clicks, current_selection):
         if trigger_table in new_selection:
             new_selection.remove(trigger_table)
 
-    print(f"[manage_table_selection] after={new_selection}")
     return new_selection
 
 @callback(
@@ -624,15 +612,12 @@ def manage_table_selection(btn_clicks, close_clicks, current_selection):
     prevent_initial_call=True,
 )
 def clear_content_on_empty_selection(selected_tables, current_n_clicks):
-    print(f"[clear_content_on_empty_selection] selected_tables={selected_tables}")
     if not selected_tables or len(selected_tables) == 0:
-        print(f"[clear_content_on_empty_selection] CLEARING content area")
         return (
             _empty_state("No Tables Selected", "Select a table from the left to view details."),
             {},
             (current_n_clicks or 0) + 1,
         )
-    print(f"[clear_content_on_empty_selection] no_update — tables still selected")
     return no_update, no_update, no_update
 
 
@@ -645,10 +630,7 @@ def clear_content_on_empty_selection(selected_tables, current_n_clicks):
     prevent_initial_call=True,
 )
 def prepare_load_trigger(selected_tables, global_filtered_ids, subject_ids_json, study_number):
-    print(f"[prepare_load_trigger] selected_tables={selected_tables} | study={study_number}")
-
     if not selected_tables or len(selected_tables) == 0 or not study_number:
-        print(f"[prepare_load_trigger] BLOCKED — empty tables or no study")
         return no_update
 
     target_ids = []
@@ -658,11 +640,9 @@ def prepare_load_trigger(selected_tables, global_filtered_ids, subject_ids_json,
         try:
             target_ids = json.loads(subject_ids_json)
         except Exception:
-            print(f"[prepare_load_trigger] BLOCKED — failed to parse subject_ids_json")
             return no_update
 
     if not target_ids:
-        print(f"[prepare_load_trigger] BLOCKED — no target_ids")
         return no_update
 
     payload = {
@@ -671,7 +651,6 @@ def prepare_load_trigger(selected_tables, global_filtered_ids, subject_ids_json,
         "study":    study_number,
         "ts":       _time.time(),
     }
-    print(f"[prepare_load_trigger] FIRED — tables={selected_tables} | subjects={len(target_ids)}")
     return payload
 
 @callback(
@@ -699,8 +678,6 @@ def prepare_load_trigger(selected_tables, global_filtered_ids, subject_ids_json,
     prevent_initial_call=True,
 )
 def update_content_area(set_progress, trigger_data):
-    print(f"[update_content_area] STARTED — trigger_data tables={trigger_data.get('tables') if trigger_data else None}")
-
     if not trigger_data:
         set_progress(["0", ""])
         return no_update, no_update
@@ -729,24 +706,20 @@ def update_content_area(set_progress, trigger_data):
             str(int((idx / total) * 100)),
             f"Loading {idx + 1} of {total}: {table_name}",
         ])
-        print(f"[update_content_area] loading {idx+1}/{total}: {table_name}")
 
         row = mapping_df[mapping_df["table_name"] == table_name]
         if row.empty:
-            print(f"[update_content_area] SKIP {table_name} — not in mapping")
             continue
 
         display_name              = row.iloc[0]["display_name"]
         key, total_rows, col_defs = get_table_data_for_infinite_scroll(
             study_number, table_name, final_ids_json
         )
-        print(f"[update_content_area] {table_name} → rows={total_rows}, key={key}")
 
         metadata[str(table_name)] = {"cache_key": key, "total_rows": total_rows}
         children.append(render_ag_grid_table(table_name, display_name, total_rows, col_defs))
 
     set_progress(["100", f"Done — {len(children)} table(s) loaded"])
-    print(f"[update_content_area] DONE — rendered {len(children)} tables: {[t for t in metadata]}")
 
     if not children:
         return _empty_state("No Data Available",
